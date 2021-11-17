@@ -118,6 +118,8 @@ private:
   void LowerReturnStmt(const Scope &scope, const ReturnStmt &returnStmt);
   /// Lowers a standalone expression statement.
   void LowerExprStmt(const Scope &scope, const ExprStmt &exprStmt);
+  /// Lowers an if statement
+  void LowerIfStmt(const Scope &scope, const IfStmt &ifStmt);
 
   /// Lowers a single expression.
   void LowerExpr(const Scope &scope, const Expr &expr);
@@ -127,6 +129,9 @@ private:
   void LowerBinaryExpr(const Scope &scope, const BinaryExpr &expr);
   /// Lowers a call expression.
   void LowerCallExpr(const Scope &scope, const CallExpr &expr);
+  
+  /// Lowers an int exepression
+  void LowerIntegerExpr(const Scope &scope, const IntegerExpr &integerExpr);
 
   /// Lowers a function declaration.
   void LowerFuncDecl(const Scope &scope, const FuncDecl &funcDecl);
@@ -149,12 +154,24 @@ private:
   void EmitReturn();
   /// Emit an add opcode.
   void EmitAdd();
+  /// Emit a sub opcode.
+  void EmitSub();
+  /// Emit a multiply opcode.
+  void EmitMultiply();
+  /// Emit a division opcode.
+  void EmitDivision();
+  // Emit a modulo opcode.
+  void EmitModulo();
   /// Emit a label.
   void EmitLabel(Label label);
   /// Emit a conditional jump.
   void EmitJumpFalse(Label label);
   /// Emit an unconditional jump.
   void EmitJump(Label label);
+  /// Emit an equality opcode.
+  void EmitEquality();
+
+  void EmitPushInteger(uint64_t value);
 
   /// Emit some bytes of code.
   template<typename T>

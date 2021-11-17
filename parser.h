@@ -39,15 +39,21 @@ private:
   std::shared_ptr<ReturnStmt> ParseReturnStmt();
   /// Parse a while loop.
   std::shared_ptr<WhileStmt> ParseWhileStmt();
+  /// Parse an if instruction.
+  std::shared_ptr<IfStmt> ParseIfStmt();
 
   /// Parse a single expression.
-  std::shared_ptr<Expr> ParseExpr() { return ParseAddSubExpr(); }
+  std::shared_ptr<Expr> ParseExpr();
   /// Parse an expression which has no operators.
   std::shared_ptr<Expr> ParseTermExpr();
   /// Parse a call expression.
   std::shared_ptr<Expr> ParseCallExpr();
   /// Parse an add/sub expression.
   std::shared_ptr<Expr> ParseAddSubExpr();
+  /// Parse a comparative expression.
+  std::shared_ptr<Expr> ParseCmpExpr();
+  /// Parse a mul/div/mod expression;
+  std::shared_ptr<Expr> ParseMulDivModExpr();
 
   /// Helper to get the current token.
   inline const Token &Current() { return lexer_.GetToken(); }

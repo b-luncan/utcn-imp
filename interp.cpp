@@ -4,6 +4,7 @@
 #include "program.h"
 
 #include <iostream>
+#include <limits>
 
 
 
@@ -51,7 +52,53 @@ void Interp::Run()
       case Opcode::ADD: {
         auto rhs = PopInt();
         auto lhs = PopInt();
+        if (((rhs > 0) && (lhs > std::numeric_limits<int64_t>::max() - rhs)) ||
+           ((rhs < 0) && (lhs < std::numeric_limits<int64_t>::min() - rhs)))
+        {
+          throw RuntimeError("add produced an invalid result");
+        }
         Push(lhs + rhs);
+        continue;
+      }
+      case Opcode::SUB: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+        if (((rhs < 0) && (lhs > std::numeric_limits<int64_t>::max() + rhs)) ||
+           ((rhs > 0) && (lhs < std::numeric_limits<int64_t>::min() + rhs)))
+        {
+          throw RuntimeError("add produced an invalid result");
+        }
+        Push(lhs - rhs);
+        continue;
+      }
+      case Opcode::MULTIPLY: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+        if (lhs > std::numeric_limits<int64_t>::max() / rhs)
+        {
+          throw RuntimeError("multiply produced an invalid result");
+        }
+        Push(lhs * rhs);
+        continue;
+      }
+      case Opcode::DIVISION: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+        if (lhs == 0)
+        {
+          throw RuntimeError("Invalid division with 0");
+        }
+        Push(lhs / rhs);
+        continue;
+      }
+      case Opcode::MODULO: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+        if (lhs == 0)
+        {
+          throw RuntimeError("Invalid modulo with 0");
+        }
+        Push(lhs % rhs);
         continue;
       }
       case Opcode::RET: {
@@ -78,6 +125,17 @@ void Interp::Run()
       }
       case Opcode::STOP: {
         return;
+      }
+      case Opcode::PUSH_INT: {
+        auto value = prog_.Read<int64_t>(pc_);
+        Push(value);
+        continue;
+      }
+      case Opcode::EQUALITY: {
+        auto rhs = PopInt();
+        auto lhs = PopInt();
+        Push(static_cast<int64_t>(lhs == rhs));
+        continue;
       }
     }
   }

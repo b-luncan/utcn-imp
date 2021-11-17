@@ -37,6 +37,8 @@ public:
     FUNC,
     RETURN,
     WHILE,
+    IF,
+    ELSE,
     // Symbols.
     LPAREN,
     RPAREN,
@@ -45,8 +47,13 @@ public:
     COLON,
     SEMI,
     EQUAL,
+    EQUALITY,
     COMMA,
     PLUS,
+    MINUS,
+    ASTERIX,
+    SLASH,
+    MODULO,
     // Complex tokens.
     INT,
     STRING,
@@ -87,6 +94,12 @@ public:
     return *value_.StringValue;
   }
 
+  uint64_t GetInteger() const 
+  {
+    assert(Is(Kind::INT) && "not an identifier");
+    return value_.IntValue;
+  }
+
   /// Copy operator.
   Token &operator=(const Token &that);
 
@@ -99,13 +112,21 @@ public:
   static Token Colon(const Location &l) { return Token(l, Kind::COLON); }
   static Token Semi(const Location &l) { return Token(l, Kind::SEMI); }
   static Token Equal(const Location &l) { return Token(l, Kind::EQUAL); }
+  static Token Equality(const Location &l) { return Token(l, Kind::EQUALITY); }
   static Token Plus(const Location &l) { return Token(l, Kind::PLUS); }
+  static Token Minus(const Location &l) { return Token(l, Kind::MINUS); }
+  static Token Asterix(const Location &l) { return Token(l, Kind::ASTERIX); }
+  static Token Slash(const Location &l) { return Token(l, Kind::SLASH); }
   static Token Comma(const Location &l) { return Token(l, Kind::COMMA); }
+  static Token Modulo(const Location &l) { return Token(l, Kind::MODULO); }
   static Token Func(const Location &l) { return Token(l, Kind::FUNC); }
   static Token Return(const Location &l) { return Token(l, Kind::RETURN); }
   static Token While(const Location &l) { return Token(l, Kind::WHILE); }
+  static Token If(const Location &l)  { return Token(l, Kind::IF); }
+  static Token Else(const Location &l) { return Token(l, Kind::ELSE); }
   static Token Ident(const Location &l, const std::string &str);
   static Token String(const Location &l, const std::string &str);
+  static Token Integer(const Location &l, const uint64_t value);
 
   /// Print the token to a stream.
   void Print(std::ostream &os) const;
@@ -164,6 +185,8 @@ private:
   Location GetLocation() const { return { name_, lineNo_, charNo_ }; }
   /// Report an error.
   [[noreturn]] void Error(const std::string &msg);
+  /// Read an integer
+  int64_t NextInteger();
 
 private:
   /// Current file name.

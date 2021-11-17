@@ -16,6 +16,14 @@ static void PrintInt(Interp &interp)
 }
 
 // -----------------------------------------------------------------------------
+static void PrintIntNewLine(Interp &interp)
+{
+  auto v = interp.PopInt();
+  std::cout << v << std::endl;
+  interp.Push<int64_t>(v);
+}
+
+// -----------------------------------------------------------------------------
 static void ReadInt(Interp &interp)
 {
   int64_t val;
@@ -26,5 +34,6 @@ static void ReadInt(Interp &interp)
 // -----------------------------------------------------------------------------
 std::map<std::string, RuntimeFn> kRuntimeFns = {
   { "print_int", PrintInt },
-  { "read_int", ReadInt }
+  { "read_int", ReadInt },
+  { "print_int_newline", PrintIntNewLine }
 };

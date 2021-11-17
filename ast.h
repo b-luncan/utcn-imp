@@ -21,8 +21,9 @@ public:
   enum class Kind {
     BLOCK,
     WHILE,
+    IF,
     EXPR,
-    RETURN
+    RETURN,
   };
 
 public:
@@ -45,6 +46,7 @@ public:
     REF,
     BINARY,
     CALL,
+    INTEGER,
   };
 
 public:
@@ -55,6 +57,20 @@ public:
 private:
   /// Kind of the expression.
   Kind kind_;
+};
+
+class IntegerExpr : public Expr {
+  public:
+    IntegerExpr(const uint64_t value) 
+      : Expr(Kind::INTEGER)
+      , value_(value)
+      {
+      }
+
+    uint64_t GetValue() const { return value_; }
+
+  private:
+    uint64_t value_;
 };
 
 /**
@@ -82,7 +98,12 @@ class BinaryExpr : public Expr {
 public:
   /// Enumeration of binary operators.
   enum class Kind {
-    ADD
+    ADD,
+    SUB,
+    MULTIPLY,
+    DIVISION,
+    EQUALITY,
+    MODULO,
   };
 
 public:
@@ -214,6 +235,38 @@ private:
   std::shared_ptr<Expr> cond_;
   /// Expression to be executed in the loop body.
   std::shared_ptr<Stmt> stmt_;
+};
+
+/**
+ * If statement
+ * 
+ * if (expr) { ... } else { ... }
+*/
+
+class IfStmt final : public Stmt {
+  public:
+    IfStmt(std::shared_ptr<Expr> cond, std::shared_ptr<Stmt> t_stmt, std::shared_ptr<Stmt> f_stmt)
+      : Stmt(Kind::IF)
+      , cond_(cond)
+      , t_stmt_(t_stmt)
+      , f_stmt_(f_stmt)
+      , has_false_(f_stmt != nullptr)
+      {
+      }
+
+      const Expr &GetCond() const { return *cond_; }
+      const Stmt &GetTrueStmt() const { return *t_stmt_; }
+      const Stmt &GetFalseStmt() const { return *f_stmt_; }
+      bool HasFalseStmt() const { return has_false_; }
+
+  private:
+    /// Condition for the if stmt.
+    std::shared_ptr<Expr> cond_;
+    /// Expression to be executed if the expr is true.
+    std::shared_ptr<Stmt> t_stmt_;
+    /// Expression to be executed if the expr is false.
+    std::shared_ptr<Stmt> f_stmt_;
+    bool has_false_;
 };
 
 /**

@@ -114,6 +114,9 @@ void Codegen::LowerStmt(const Scope &scope, const Stmt &stmt)
     case Stmt::Kind::WHILE: {
       return LowerWhileStmt(scope, static_cast<const WhileStmt &>(stmt));
     }
+    case Stmt::Kind::IF: {
+      return LowerIfStmt(scope, static_cast<const IfStmt &>(stmt));
+    }
     case Stmt::Kind::EXPR: {
       return LowerExprStmt(scope, static_cast<const ExprStmt &>(stmt));
     }
@@ -151,6 +154,24 @@ void Codegen::LowerWhileStmt(const Scope &scope, const WhileStmt &whileStmt)
 }
 
 // -----------------------------------------------------------------------------
+void Codegen::LowerIfStmt(const Scope &scope, const IfStmt &ifStmt)
+{
+  auto falseStmtLabel = MakeLabel();
+  auto exit = MakeLabel();
+
+  LowerExpr(scope, ifStmt.GetCond());
+  EmitJumpFalse(falseStmtLabel);
+  LowerStmt(scope, ifStmt.GetTrueStmt());
+  EmitJump(exit);
+  EmitLabel(falseStmtLabel);
+
+  if (ifStmt.HasFalseStmt()) {
+    LowerStmt(scope, ifStmt.GetFalseStmt());
+  }
+  EmitLabel(exit);
+}
+
+// -----------------------------------------------------------------------------
 void Codegen::LowerReturnStmt(const Scope &scope, const ReturnStmt &retStmt)
 {
   LowerExpr(scope, retStmt.GetExpr());
@@ -177,7 +198,16 @@ void Codegen::LowerExpr(const Scope &scope, const Expr &expr)
     case Expr::Kind::CALL: {
       return LowerCallExpr(scope, static_cast<const CallExpr &>(expr));
     }
+    case Expr::Kind::INTEGER: {
+      return LowerIntegerExpr(scope, static_cast<const IntegerExpr &>(expr));
+    }
   }
+}
+
+// -----------------------------------------------------------------------------
+void Codegen::LowerIntegerExpr(const Scope &scope, const IntegerExpr &expr)
+{
+  EmitPushInteger(expr.GetValue());
 }
 
 // -----------------------------------------------------------------------------
@@ -208,6 +238,21 @@ void Codegen::LowerBinaryExpr(const Scope &scope, const BinaryExpr &binary)
   switch (binary.GetKind()) {
     case BinaryExpr::Kind::ADD: {
       return EmitAdd();
+    }
+    case BinaryExpr::Kind::SUB: {
+      return EmitSub();
+    }
+    case BinaryExpr::Kind::MULTIPLY: {
+      return EmitMultiply();
+    }
+    case BinaryExpr::Kind::DIVISION: {
+      return EmitDivision();
+    }
+    case BinaryExpr::Kind::MODULO: {
+      return EmitModulo();
+    }
+    case BinaryExpr::Kind::EQUALITY: {
+      return EmitEquality();
     }
   }
 }
@@ -341,6 +386,36 @@ void Codegen::EmitAdd()
 }
 
 // -----------------------------------------------------------------------------
+void Codegen::EmitSub()
+{
+  assert(depth_ > 0 && "no elements on stack");
+  depth_ -= 1;
+  Emit<Opcode>(Opcode::SUB);
+}
+
+// -----------------------------------------------------------------------------
+void Codegen::EmitMultiply()
+{
+  assert(depth_ > 0 && "no elements on stack");
+  depth_ -= 1;
+  Emit<Opcode>(Opcode::MULTIPLY);
+}
+
+// -----------------------------------------------------------------------------
+void Codegen::EmitDivision() {
+  assert(depth_ > 0 && "no elements on stack");
+  depth_ -= 1;
+  Emit<Opcode>(Opcode::DIVISION);
+}
+
+// -----------------------------------------------------------------------------
+void Codegen::EmitModulo() {
+  assert(depth_ > 0 && "no elements on stack");
+  depth_ -= 1;
+  Emit<Opcode>(Opcode::MODULO);
+}
+
+// -----------------------------------------------------------------------------
 void Codegen::EmitJumpFalse(Label label)
 {
   assert(depth_ > 0 && "no elements on stack");
@@ -355,3 +430,19 @@ void Codegen::EmitJump(Label label)
   Emit<Opcode>(Opcode::JUMP);
   EmitFixup(label);
 }
+
+// -----------------------------------------------------------------------------
+void Codegen::EmitPushInteger(uint64_t value)
+{
+  depth_ += 1;
+  Emit<Opcode>(Opcode::PUSH_INT);
+  Emit<int64_t>(value);
+}
+
+// -----------------------------------------------------------------------------
+void Codegen::EmitEquality() {
+  assert(depth_ > 0 && "no elements on stack");
+  depth_ -= 1;
+  Emit<Opcode>(Opcode::EQUALITY);
+}
+
